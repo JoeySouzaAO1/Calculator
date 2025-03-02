@@ -32,7 +32,9 @@ function reducer(state, {type, payload}) {
       return {}
     
     case ACTIONS.DELETE_DIGIT:
-      if (state.overwrite) {return {
+      if (state.currentOperand == null) return state
+    
+    if (state.overwrite) {return {
         ...state,
         overwrite: false,
         currentOperand: null
@@ -47,8 +49,16 @@ function reducer(state, {type, payload}) {
       }
 
     case ACTIONS.CHOOSE_OPERATION:
-     if (state.previousOperand == null && state.currentOperand == null) 
-      return state
+      if (state.previousOperand == null && state.currentOperand == null){
+        if (payload.operation === "-"){
+          return {
+            ...state,
+            currentOperand: "-"
+          }
+        }
+        return state
+      }
+
 
      if (state.currentOperand == null) {
       return {
@@ -63,7 +73,7 @@ function reducer(state, {type, payload}) {
         previousOperand: state.currentOperand,
         currentOperand: null
       }}
-    return {
+      return {
         ...state,
         previousOperand: evaluate(state.previousOperand, state.currentOperand, state.operation),
         operation: payload.operation,
@@ -71,7 +81,7 @@ function reducer(state, {type, payload}) {
       }
 
     case ACTIONS.EVALUATE:
-      if (state.previousOperand == null || state.currentOperand == null || state.operation == null) return state 
+      if (state.previousOperand == null || state.currentOperand == null || state.operation == null || state.currentOperand === "-") return state 
     return {
         ...state,
         overwrite: true,
@@ -83,9 +93,13 @@ function reducer(state, {type, payload}) {
 }
 
 function evaluate (previousOperand, currentOperand, operation) {
+  if (currentOperand === "-") return currentOperand
+
 const prev = parseFloat(previousOperand)
 const curr = parseFloat(currentOperand)
-if (isNaN(prev) || isNaN(curr)) return ""
+if (isNaN(prev) || isNaN(curr)) 
+  return currentOperand || previousOperand || ""
+
 
 let computation;
 switch (operation) {
@@ -109,12 +123,14 @@ return computation.toString()
 
 const INTEGER_FORMAT = new Intl.NumberFormat("en-us", {maximumFractionDigits: 0})
 
-function formatOperand (operand) {
-  if (operand == null) return 
+function formatOperand(operand) {
+  if (operand == null) return
+  if (operand === "-") return operand  // Return "-" as is
   const [integer, decimal] = operand.split(".")
   if (decimal == null) return INTEGER_FORMAT.format(integer)
   return `${INTEGER_FORMAT.format(integer)}.${decimal}`
 }
+
 
 function App () {
 const [{previousOperand, currentOperand, operation}, dispatch] = useReducer(reducer, {})
