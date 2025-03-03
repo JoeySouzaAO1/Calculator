@@ -2,6 +2,8 @@
 
 Welcome to the coolest calculator app this side of the internet! 🎉 Built with React and powered by the magical useReducer hook, this calculator will make your math problems disappear faster than you can say "algebraic"!
 
+## *🔗 [Live Demo](https://joeysouzaao1.github.io/Calculator/)*
+
 ## 🚀 Features
 
 - Basic arithmetic operations (addition, subtraction, multiplication, division)
