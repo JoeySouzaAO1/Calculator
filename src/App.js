@@ -1,4 +1,4 @@
-import { useReducer } from 'react';
+import { useReducer, useEffect, useCallback } from 'react';
 import './Styles.css';
 import DigitButton from './components/DigitButton';
 import OperationButton from './components/OperationButton';
@@ -113,6 +113,7 @@ case "+":
   computation = prev * curr;
   break
   case "÷":
+  case "/":
   computation = prev / curr;
   break
   default: 
@@ -132,8 +133,45 @@ function formatOperand(operand) {
 }
 
 
+
 function App () {
 const [{previousOperand, currentOperand, operation}, dispatch] = useReducer(reducer, {})
+
+const handleKeyDown = useCallback((e) => {
+  const {key} = e;
+  const allowedKeys = ['0', '1', '2', '3', '4', '5', '6', '7', '8', 
+    '9', '+', '-', '*', '÷', '/', '.', 'Enter','Return', 'Backspace', 'Delete']
+    if (allowedKeys.includes(key)){
+      e.preventDefault();
+      console.log('Key pressed:', e.key);
+      switch(key) {
+        case 'Enter':
+        case 'Return':
+          dispatch ({type: ACTIONS.EVALUATE});
+          break
+        case 'Backspace':
+        case 'Delete':
+          dispatch ({type: ACTIONS.DELETE_DIGIT})
+          break
+        case '+':
+        case '-':
+        case '*':
+        case '÷':
+        case '/':
+          dispatch ({type: ACTIONS.CHOOSE_OPERATION, payload: {operation: key}})
+          break
+        default: 
+        dispatch ({type: ACTIONS.ADD_DIGIT, payload: {digit: key}})
+      } 
+    }
+}, [dispatch])
+
+useEffect(() => {
+  window.addEventListener('keydown', handleKeyDown)
+  return () => {
+  window.removeEventListener('keydown', handleKeyDown)
+  }
+}, [handleKeyDown])
   
   return (
  <div className='calculator-grid'>
@@ -151,7 +189,7 @@ const [{previousOperand, currentOperand, operation}, dispatch] = useReducer(redu
     <DigitButton digit="4" dispatch={dispatch} />
     <DigitButton digit="5" dispatch={dispatch} />
     <DigitButton digit="6" dispatch={dispatch} />
-    <OperationButton operation="÷" dispatch={dispatch} />
+    <OperationButton operation="÷"  dispatch={dispatch} />
     <DigitButton digit="7" dispatch={dispatch} />
     <DigitButton digit="8" dispatch={dispatch} />
     <DigitButton digit="9" dispatch={dispatch} />
