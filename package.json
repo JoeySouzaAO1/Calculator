@@ -11,9 +11,7 @@
     "react-scripts": "5.0.1",
     "web-vitals": "^2.1.4"
   },
-  {
-  "homepage": "https://JoeySouzaAO1.github.io/Calculator"
-}
+  "homepage": "https://JoeySouzaAO1.github.io/Calculator",
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
