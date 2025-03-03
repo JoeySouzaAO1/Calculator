@@ -26,6 +26,11 @@ body {
     background-color: rgba(255,255,255,.9);
 }
 
+.calculator-grid > button[class^="operationBtn"] {
+    box-shadow: 0 0 10px rgba(21, 220, 47, 0.5);
+  }
+  
+
 .span-two {
     grid-column: span 2;
 }
@@ -50,6 +55,7 @@ body {
 
 .output .current-operand {
     color: white;
-    font-size: 2.5rem;
+    font-size: 2.5rem
     
 }
+  
