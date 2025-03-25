@@ -18,11 +18,21 @@ function reducer(state, {type, payload}) {
     case ACTIONS.ADD_DIGIT: 
     if (payload.digit === "0" && state.currentOperand == null) return state
     if (payload.digit === "." && state.currentOperand && state.currentOperand.includes(".")) return state
-    if (state.overwrite) { return {
-      ...state,
-      currentOperand: payload.digit,
-      overwrite: false
-    }}
+    if (state.overwrite) {
+      // Check if the current operand ends with an operation
+      if (state.currentOperand && /[+\-*÷/]$/.test(state.currentOperand)) {
+        return {
+          ...state,
+          currentOperand: `${state.currentOperand}${payload.digit}`,
+          overwrite: false
+        }
+      }
+      return {
+        ...state,
+        currentOperand: payload.digit,
+        overwrite: false
+      }
+    }
     return {
       ...state,
       currentOperand: `${state.currentOperand || ""}${payload.digit}`
@@ -49,8 +59,8 @@ function reducer(state, {type, payload}) {
       }
 
     case ACTIONS.CHOOSE_OPERATION:
-      if (state.previousOperand == null && state.currentOperand == null){
-        if (payload.operation === "-"){
+      if (state.currentOperand == null) {
+        if (payload.operation === "-") {
           return {
             ...state,
             currentOperand: "-"
@@ -58,36 +68,28 @@ function reducer(state, {type, payload}) {
         }
         return state
       }
-
-
-     if (state.currentOperand == null) {
-      return {
-        ...state, 
-        operation: payload.operation,
-      }
-     }
-
-    if (state.previousOperand == null) {return {
-        ...state,
-        operation: payload.operation,
-        previousOperand: state.currentOperand,
-        currentOperand: null
-      }}
+      
       return {
         ...state,
-        previousOperand: evaluate(state.previousOperand, state.currentOperand, state.operation),
-        operation: payload.operation,
-        currentOperand: null
+        currentOperand: `${state.currentOperand}${payload.operation}`
       }
 
     case ACTIONS.EVALUATE:
-      if (state.previousOperand == null || state.currentOperand == null || state.operation == null || state.currentOperand === "-") return state 
-    return {
-        ...state,
-        overwrite: true,
-        previousOperand: null,
-        operation: null,
-        currentOperand: evaluate(state.previousOperand, state.currentOperand, state.operation)
+      if (state.currentOperand == null) return state
+      try {
+        // Replace ÷ with / for JavaScript evaluation
+        const expression = state.currentOperand.replace(/÷/g, '/')
+        // Use Function constructor to safely evaluate the expression
+        const result = new Function(`return ${expression}`)()
+        return {
+          ...state,
+          overwrite: true,
+          previousOperand: state.currentOperand,
+          operation: null,
+          currentOperand: result.toString()
+        }
+      } catch (error) {
+        return state
       }
   }
 }
@@ -126,7 +128,11 @@ const INTEGER_FORMAT = new Intl.NumberFormat("en-us", {maximumFractionDigits: 0}
 
 function formatOperand(operand) {
   if (operand == null) return
-  if (operand === "-") return operand  // Return "-" as is
+  if (operand === "-") return operand
+  
+  // If the operand contains operators, return it as is
+  if (/[+\-*÷/]/.test(operand)) return operand
+  
   const [integer, decimal] = operand.split(".")
   if (decimal == null) return INTEGER_FORMAT.format(integer)
   return `${INTEGER_FORMAT.format(integer)}.${decimal}`
@@ -176,8 +182,8 @@ useEffect(() => {
   return (
  <div className='calculator-grid'>
   <div className='output'>
-    <div className='previous-operand'> {formatOperand (previousOperand)} {operation}</div>
-    <div className='current-operand' >{formatOperand (currentOperand)}</div>
+    <div className='previous-operand'>{formatOperand(previousOperand)}</div>
+    <div className='current-operand'>{formatOperand(currentOperand)}</div>
     </div>
     <button className='span-two' onClick={() => dispatch({type: ACTIONS.CLEAR})} >AC</button>
     <button onClick={() => dispatch({type: ACTIONS.DELETE_DIGIT})}>DEL</button>
