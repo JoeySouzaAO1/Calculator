@@ -9,9 +9,46 @@ export const ACTIONS = {
   CLEAR: 'clear',
   DELETE_DIGIT: 'delete-digit',
   CHOOSE_OPERATION: 'choose-operation',
-  EVALUATE: 'evaluate'
+  EVALUATE: 'evaluate',
+  TOGGLE_UNIT_CONVERTER: 'toggle-unit-converter',
+  CONVERT_UNIT: 'convert-unit'
 }
 
+const UNIT_TYPES = {
+  TEMPERATURE: 'temperature',
+  LENGTH_M: 'length-metric',
+  LENGTH_KM: 'length-km',
+  WEIGHT: 'weight'
+}
+
+function getPreviewValue(expression) {
+  if (!expression) return null;
+  try {
+    const sanitizedExpression = expression.replace(/÷/g, '/');
+    const result = new Function(`return ${sanitizedExpression}`)();
+    return result.toString();
+  } catch (error) {
+    return null;
+  }
+}
+
+function convertUnit(value, fromUnit, toUnit) {
+  const num = parseFloat(value);
+  if (isNaN(num)) return '';
+
+  switch(fromUnit) {
+    case UNIT_TYPES.TEMPERATURE:
+      return ((num * 9/5) + 32).toFixed(2) + '°F';  // Celsius to Fahrenheit
+    case UNIT_TYPES.LENGTH_M:
+      return (num * 3.28084).toFixed(2) + ' ft';    // Meters to Feet
+    case UNIT_TYPES.LENGTH_KM:
+      return (num * 0.621371).toFixed(2) + ' mi';   // Kilometers to Miles
+    case UNIT_TYPES.WEIGHT:
+      return (num * 2.20462).toFixed(2) + ' lbs';   // Kilograms to Pounds
+    default:
+      return '';
+  }
+}
 
 function reducer(state, {type, payload}) {
   switch(type){
@@ -91,6 +128,23 @@ function reducer(state, {type, payload}) {
       } catch (error) {
         return state
       }
+
+    case ACTIONS.TOGGLE_UNIT_CONVERTER:
+      return {
+        ...state,
+        isUnitConverter: !state.isUnitConverter,
+        currentOperand: null,
+        previousOperand: null,
+        operation: null
+      }
+
+    case ACTIONS.CONVERT_UNIT:
+      if (!state.currentOperand) return state;
+      return {
+        ...state,
+        previousOperand: `${state.currentOperand} ${payload.fromUnit}`,
+        currentOperand: convertUnit(state.currentOperand, payload.unitType, payload.toUnit)
+      }
   }
 }
 
@@ -141,7 +195,11 @@ function formatOperand(operand) {
 
 
 function App () {
-const [{previousOperand, currentOperand, operation}, dispatch] = useReducer(reducer, {})
+const [{previousOperand, currentOperand, operation, isUnitConverter}, dispatch] = useReducer(reducer, {
+  isUnitConverter: false
+})
+
+const previewValue = currentOperand ? getPreviewValue(currentOperand) : null;
 
 const handleKeyDown = useCallback((e) => {
   const {key} = e;
@@ -180,30 +238,79 @@ useEffect(() => {
 }, [handleKeyDown])
   
   return (
- <div className='calculator-grid'>
-  <div className='output'>
-    <div className='previous-operand'>{formatOperand(previousOperand)}</div>
-    <div className='current-operand'>{formatOperand(currentOperand)}</div>
+    <div className='calculator-grid'>
+      <div className='output'>
+        <div className='previous-operand'>{formatOperand(previousOperand)}</div>
+        <div className='current-operand'>{formatOperand(currentOperand)}</div>
+        <div className='preview-value'>{previewValue !== currentOperand && previewValue ? `= ${previewValue}` : ''}</div>
+      </div>
+      <button onClick={() => dispatch({type: ACTIONS.CLEAR})} className='control-btn clear'>AC</button>
+      <button onClick={() => dispatch({type: ACTIONS.DELETE_DIGIT})} className='control-btn delete'>DEL</button>
+      <button 
+        onClick={() => dispatch({type: ACTIONS.TOGGLE_UNIT_CONVERTER})}
+        className='control-btn mode'
+      >
+        {isUnitConverter ? 'CALC' : 'UNIT'}
+      </button>
+      <button 
+        className='control-btn negative'
+        onClick={() => dispatch({type: ACTIONS.CHOOSE_OPERATION, payload: {operation: "-"}})}
+      >±</button>
+
+      {isUnitConverter ? (
+        <>
+          <button 
+            className='unit-btn temperature'
+            onClick={() => dispatch({type: ACTIONS.CONVERT_UNIT, payload: {unitType: UNIT_TYPES.TEMPERATURE}})}
+          >°C → °F</button>
+          <button 
+            className='unit-btn length-m'
+            onClick={() => dispatch({type: ACTIONS.CONVERT_UNIT, payload: {unitType: UNIT_TYPES.LENGTH_M}})}
+          >m → ft</button>
+          <button 
+            className='unit-btn length-km'
+            onClick={() => dispatch({type: ACTIONS.CONVERT_UNIT, payload: {unitType: UNIT_TYPES.LENGTH_KM}})}
+          >km → mi</button>
+          <button 
+            className='unit-btn weight'
+            onClick={() => dispatch({type: ACTIONS.CONVERT_UNIT, payload: {unitType: UNIT_TYPES.WEIGHT}})}
+          >kg → lb</button>
+          <DigitButton digit="7" dispatch={dispatch} />
+          <DigitButton digit="8" dispatch={dispatch} />
+          <DigitButton digit="9" dispatch={dispatch} />
+          <button 
+            className='evaluate-unit'
+            onClick={() => dispatch({type: ACTIONS.EVALUATE})}
+          >=</button>
+          <DigitButton digit="4" dispatch={dispatch} />
+          <DigitButton digit="5" dispatch={dispatch} />
+          <DigitButton digit="6" dispatch={dispatch} />
+          <DigitButton digit="1" dispatch={dispatch} />
+          <DigitButton digit="2" dispatch={dispatch} />
+          <DigitButton digit="3" dispatch={dispatch} />
+          <DigitButton digit="0" dispatch={dispatch} />
+          <DigitButton digit="." dispatch={dispatch} />
+        </>
+      ) : (
+        <>
+          <DigitButton digit="1" dispatch={dispatch} />
+          <DigitButton digit="2" dispatch={dispatch} />
+          <DigitButton digit="3" dispatch={dispatch} />
+          <OperationButton operation="*" dispatch={dispatch} />
+          <DigitButton digit="4" dispatch={dispatch} />
+          <DigitButton digit="5" dispatch={dispatch} />
+          <DigitButton digit="6" dispatch={dispatch} />
+          <OperationButton operation="÷" dispatch={dispatch} />
+          <DigitButton digit="7" dispatch={dispatch} />
+          <DigitButton digit="8" dispatch={dispatch} />
+          <DigitButton digit="9" dispatch={dispatch} />
+          <OperationButton operation="+" dispatch={dispatch} />
+          <DigitButton digit="." dispatch={dispatch} />
+          <DigitButton digit="0" dispatch={dispatch} />
+          <button className='span-two' onClick={() => dispatch({type: ACTIONS.EVALUATE})}>=</button>
+        </>
+      )}
     </div>
-    <button className='span-two' onClick={() => dispatch({type: ACTIONS.CLEAR})} >AC</button>
-    <button onClick={() => dispatch({type: ACTIONS.DELETE_DIGIT})}>DEL</button>
-    <OperationButton operation="-" dispatch={dispatch} />
-    <DigitButton digit="1" dispatch={dispatch} />
-    <DigitButton digit="2" dispatch={dispatch} />
-    <DigitButton digit="3" dispatch={dispatch} />
-    <OperationButton operation="*" dispatch={dispatch} />
-    <DigitButton digit="4" dispatch={dispatch} />
-    <DigitButton digit="5" dispatch={dispatch} />
-    <DigitButton digit="6" dispatch={dispatch} />
-    <OperationButton operation="÷"  dispatch={dispatch} />
-    <DigitButton digit="7" dispatch={dispatch} />
-    <DigitButton digit="8" dispatch={dispatch} />
-    <DigitButton digit="9" dispatch={dispatch} />
-    <OperationButton operation="+" dispatch={dispatch} />
-    <DigitButton digit="." dispatch={dispatch} />
-    <DigitButton digit="0" dispatch={dispatch} />
-    <button className='span-two' onClick={() => dispatch({type: ACTIONS.EVALUATE})}>=</button>
- </div>
   );
 }
 

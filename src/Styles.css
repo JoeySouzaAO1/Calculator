@@ -13,23 +13,28 @@ body {
     justify-content: center;
     grid-template-columns: repeat(4, 6rem);
     grid-template-rows: minmax(7rem, auto) repeat(5, 6rem);
+    gap: 1px;
 }
+
 .calculator-grid > button {
     cursor: pointer;
     font-size: 2rem;
     border: 1px solid white;
     outline: none;
     background-color: rgba(255,255,255,.75);
+    transition: all 0.2s ease;
 }
+
 .calculator-grid > button:hover,
 .calculator-grid > button:focus {
     background-color: rgba(255,255,255,.9);
+    transform: translateY(-2px);
 }
 
 .calculator-grid > button[class^="operationBtn"] {
     box-shadow: 0 0 10px rgba(21, 220, 47, 0.5);
-  }
-  
+    background-color: rgba(255,255,255,.85);
+}
 
 .span-two {
     grid-column: span 2;
@@ -45,17 +50,116 @@ body {
     padding: .75rem;
     word-wrap: break-word;
     word-break: break-all;
+    min-height: 8rem;
 }
 
 .output .previous-operand {
     color: rgba(255,255,255,.75);
     font-size: 1.5rem;
-    
+    margin-bottom: 0.5rem;
 }
 
 .output .current-operand {
     color: white;
-    font-size: 2.5rem
-    
+    font-size: 2.5rem;
+    margin-bottom: 0.25rem;
+}
+
+.output .preview-value {
+    color: rgba(144, 238, 144, 0.75);  /* Light green with transparency */
+    font-size: 1.2rem;
+    font-style: italic;
+    min-height: 1.2rem; /* Ensures consistent spacing even when empty */
+}
+
+/* Control buttons (AC, DEL, UNIT/CALC, ±) */
+.control-btn {
+    font-size: 1.5rem !important;
+    font-weight: 500 !important;
+    background-color: rgba(255,255,255,.85) !important;
+    transition: all 0.2s ease;
+}
+
+.control-btn.clear {
+    color: #e74c3c !important;
+}
+
+.control-btn.delete {
+    color: #f39c12 !important;
+}
+
+.control-btn.mode {
+    color: #8e44ad !important;
+}
+
+.control-btn.negative {
+    color: #2c3e50 !important;
+}
+
+.control-btn:hover {
+    background-color: rgba(255,255,255,.95) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* Unit converter specific styles */
+.unit-btn {
+    font-size: 1.5rem !important;
+    background-color: rgba(255,255,255,.85) !important;
+    color: #2c3e50 !important;
+    font-weight: 500;
+    border-bottom: 3px solid rgba(0,0,0,0.1) !important;
+}
+
+.unit-btn:hover {
+    background-color: rgba(255,255,255,.95) !important;
+    transform: translateY(-2px);
+    border-bottom: 3px solid rgba(0,0,0,0.2) !important;
+}
+
+.unit-btn.temperature { color: #e74c3c !important; }
+.unit-btn.length-m { color: #27ae60 !important; }
+.unit-btn.length-km { color: #2980b9 !important; }
+.unit-btn.weight { color: #8e44ad !important; }
+
+/* Evaluate button styles */
+.evaluate-unit,
+.span-two {
+    background-color: rgba(52, 152, 219, 0.85) !important;
+    color: white !important;
+    font-weight: bold;
+}
+
+.evaluate-unit:hover,
+.span-two:hover {
+    background-color: rgba(52, 152, 219, 1) !important;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    transform: translateY(-2px);
+}
+
+/* Responsive design improvements */
+@media (max-width: 600px) {
+    .calculator-grid {
+        grid-template-columns: repeat(4, 4.5rem);
+        grid-template-rows: minmax(7rem, auto) repeat(5, 4.5rem);
+        margin: 1rem;
+    }
+
+    .calculator-grid > button {
+        font-size: 1.5rem;
+    }
+
+    .control-btn,
+    .unit-btn {
+        font-size: 1.2rem !important;
+    }
+
+    .output .current-operand {
+        font-size: 2rem;
+    }
+
+    .output .preview-value {
+        font-size: 1rem;
+    }
 }
   
